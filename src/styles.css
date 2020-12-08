@@ -1,3 +1,14 @@
+.body {
+  font-family: 'Open Sans', sans-serif;
+}
+
+div#container {
+  width: 1000px;
+  height: 700px;
+  margin: auto;
+  background-color: #2f4a6d;
+}
+
 .app-header {
   min-height: 100vh;
   display: flex;
@@ -7,22 +18,37 @@
   font-size: calc(10px + 2vmin);
 }
 
-.chart-title {
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-}
-
-.graph-area {
-  padding-left: 20;
-}
-
-.single-bar:hover {
-  fill: blue;
-}
-
-title {
+h1 {
   color: white;
+  font-size: 30px;
 }
 
 .axis-label {
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 24px;
+}
+
+.grid path {
+  stroke-width: 0;
+}
+
+.grid .tick line {
+  stroke: #9faaae;
+  stroke-opacity: 0.3;
+}
+
+path {
+  stroke: gray;
+}
+
+line {
+  stroke: gray;
+}
+
+.bar {
+  fill: #80cbc4;
+}
+
+text {
+  font-size: 14px;
+  fill: #fff;
 }

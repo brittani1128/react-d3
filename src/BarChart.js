@@ -15,14 +15,12 @@ class BarChart extends Component {
   }
 
   drawChart() {
-    const w = 700;
-    const h = 400;
+    const w = 900;
+    const h = 600;
     const margin = { top: 20, right: 20, bottom: 100, left: 100 };
     const padding = 50;
     const graphWidth = w - margin.left - margin.right;
     const graphHeight = h - margin.top - margin.bottom;
-
-    // const { data } = this.props;
 
     // CHART -----------------------
 
@@ -32,20 +30,14 @@ class BarChart extends Component {
       .attr('width', w)
       .attr('height', h);
 
+    const svgContainer = d3.select('#container');
+
     const graph = svg
       .append('g')
       .attr('width', graphWidth)
       .attr('height', graphHeight)
       .attr('class', 'graph-area')
       .attr('transform', `translate(${margin.left + padding}, ${margin.top})`);
-
-    const gXAxis = graph
-      .append('g')
-      .attr('transform', `translate(0, ${graphHeight})`);
-
-    const gYAxis = graph.append('g');
-
-    // SCALES ----------------------
 
     d3.csv('./data/co2-emissions.csv').then((co2Data) => {
       const usData = co2Data[0];
@@ -65,19 +57,25 @@ class BarChart extends Component {
         }
       });
 
-      const y = d3
+      // SCALES ----------------------
+
+      const yScale = d3
         .scaleLinear()
-        .domain([
-          d3.min(data, (d) => d.value) - 200000,
-          d3.max(data, (d) => d.value),
-        ])
+        .domain([0, 6000000]) // calculate domain
         .range([graphHeight, 0]);
-      const x = d3
+      const xScale = d3
         .scaleBand()
         .domain(data.map((d) => d.date))
-        .range([0, 500])
+        .range([0, graphWidth - 50])
         .paddingInner(0.2)
         .paddingOuter(0.2);
+
+      const makeYLines = () => d3.axisLeft().scale(yScale);
+
+      graph
+        .append('g')
+        .attr('class', 'grid')
+        .call(makeYLines().tickSize(-w, 0, 0).tickFormat(''));
 
       // BARS ------------------------
 
@@ -85,19 +83,34 @@ class BarChart extends Component {
       rects
         .enter()
         .append('rect')
-        .attr('class', 'single-bar')
+        .attr('class', 'bar')
+        .attr('x', (d, i) => xScale(d.date))
+        .attr('y', (d, i) => yScale(d.value))
+        .attr('width', xScale.bandwidth())
+        .attr('height', (d) => graphHeight - yScale(d.value))
         .attr('fill', 'navy')
-        .attr('x', (d, i) => x(d.date))
-        .attr('y', (d, i) => y(d.value))
-        .attr('width', 15)
-        .attr('height', (d) => graphHeight - y(d.value))
+        .on('mouseenter', function (actual, i) {
+          d3.selectAll('.value').attr('opacity', 0);
+
+          d3.select(this).transition().duration(200).attr('opacity', 0.6);
+        })
+        .on('mouseleave', function () {
+          d3.selectAll('.value').attr('opacity', 1);
+
+          d3.select(this).transition().duration(300).attr('opacity', 1);
+        })
         .append('title')
         .text((d) => d.value);
 
       // AXES ------------------------
 
-      const xAxis = d3.axisBottom(x);
-      const yAxis = d3.axisLeft(y).ticks(15);
+      const gXAxis = graph
+        .append('g')
+        .attr('transform', `translate(0, ${graphHeight})`);
+      const gYAxis = graph.append('g');
+
+      const xAxis = d3.axisBottom(xScale);
+      const yAxis = d3.axisLeft(yScale).ticks(15);
 
       gXAxis.call(xAxis);
       gYAxis.call(yAxis);
@@ -112,7 +125,7 @@ class BarChart extends Component {
       .append('text')
       .attr('class', 'axis-label')
       .attr('x', w / 2 + padding)
-      .attr('y', h)
+      .attr('y', h - margin.top)
       .style('text-anchor', 'middle')
       .text('Year');
 
@@ -124,7 +137,7 @@ class BarChart extends Component {
       .attr('x', 0 - h / 2 + padding)
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
-      .text('Value');
+      .text('CO2 Emissions (kt)');
   }
 
   render() {
@@ -135,7 +148,7 @@ class BarChart extends Component {
       },
     };
     return (
-      <div ref="chart" style={styles.container}>
+      <div ref="chart" style={styles.container} id="container">
         <h1
           style={{ textAlign: 'center' }}
           className="chart-title"
