@@ -145,6 +145,7 @@ class BarChart extends Component {
       container: {
         display: 'grid',
         justifyItems: 'center',
+        margin: '20px',
       },
     };
     return (
