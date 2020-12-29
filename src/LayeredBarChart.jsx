@@ -15,11 +15,11 @@ class LayeredBarChart extends Component {
   }
 
   drawChart() {
-    const w = 900;
+    const w = 950;
     const h = 600;
     const margin = { top: 20, right: 20, bottom: 100, left: 100 };
     const padding = 50;
-    const graphWidth = w - margin.left - margin.right;
+    const graphWidth = w - margin.left - margin.right - 200;
     const graphHeight = h - margin.top - margin.bottom;
 
     // CHART -----------------------
@@ -38,6 +38,14 @@ class LayeredBarChart extends Component {
       .attr('height', graphHeight)
       .attr('class', 'graph-area')
       .attr('transform', `translate(${margin.left + padding}, ${margin.top})`);
+
+    const legend = svg
+      .append('g')
+      .attr('class', 'legend')
+      .attr('fill', 'white')
+      .attr('width', 150)
+      .attr('height', 100)
+      .attr('transform', `translate(150, 100)`);
 
     d3.csv('./data/global-greenhouse-gas-emissions.csv').then((data) => {
       const [carbonDioxide, methane, nitrousOxide, other] = [
@@ -63,12 +71,13 @@ class LayeredBarChart extends Component {
       const xScale = d3
         .scaleTime()
         .domain([+data[0].Year, +data[data.length - 1].Year])
-        .range([50, 650]);
+        .range([50, 525]);
 
+      const colors = ['#23999d', '#00bfc6', '#8bd7da', '#c2e8eb'];
       const colorScale = d3
         .scaleOrdinal()
         .domain([carbonDioxide, methane, nitrousOxide, other])
-        .range(['#23999d', '#00bfc6', '#8bd7da', '#c2e8eb']);
+        .range(colors);
 
       const makeYLines = () => d3.axisLeft().scale(yScale);
       graph
@@ -119,14 +128,50 @@ class LayeredBarChart extends Component {
         .attr('height', (d) => yScale(d[0]) - yScale(d[1]))
         .on('mouseover', () => tooltip.style('display', null))
         .on('mouseout', () => tooltip.style('display', 'none'))
-        .on('mousemove', (event) => {
+        .on('mousemove', (event, d) => {
           const xPosition = d3.pointer(event)[0] + 130;
           const yPosition = d3.pointer(event)[1] - 10;
           tooltip.attr(
             'transform',
             'translate(' + xPosition + ',' + yPosition + ')'
           );
-          tooltip.select('text').text(event.y);
+          tooltip.select('text').text(Math.floor(d[1] - d[0]));
+        });
+
+      // LEGEND ---------------------------
+
+      const legendOption = legend
+        .selectAll('.legend-option')
+        .data(colors)
+        .enter()
+        .append('g')
+        .attr('class', 'legend-option')
+        .attr('transform', (d, i) => 'translate(30,' + i * 19 + ')');
+
+      legendOption
+        .append('rect')
+        .attr('x', graphWidth - 18)
+        .attr('width', 18)
+        .attr('height', 18)
+        .style('fill', (d, i) => colors.slice().reverse()[i]);
+
+      legendOption
+        .append('text')
+        .attr('x', graphWidth + 5)
+        .attr('y', 9)
+        .attr('dy', '.35em')
+        .style('text-anchor', 'start')
+        .text((d, i) => {
+          switch (i) {
+            case 0:
+              return other;
+            case 1:
+              return nitrousOxide;
+            case 2:
+              return methane;
+            case 3:
+              return carbonDioxide;
+          }
         });
     });
 
@@ -158,14 +203,14 @@ class LayeredBarChart extends Component {
 
     tooltip
       .append('rect')
-      .attr('width', 30)
-      .attr('height', 20)
+      .attr('width', 55)
+      .attr('height', 25)
       .attr('fill', 'white')
-      .style('opacity', 0.5);
+      .style('opacity', 0.3);
 
     tooltip
       .append('text')
-      .attr('x', 15)
+      .attr('x', 28)
       .attr('dy', '1.2em')
       .style('text-anchor', 'middle')
       .attr('font-size', '12px')
