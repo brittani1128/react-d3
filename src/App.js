@@ -5,6 +5,7 @@ import data from './data.js';
 
 import BarChart from './BarChart';
 import LayeredBarChart from './LayeredBarChart';
+import LineGraph from './LineGraph';
 
 class App extends Component {
   render() {
@@ -13,6 +14,7 @@ class App extends Component {
         <div>Visualizations</div>
         <BarChart />
         <LayeredBarChart />
+        <LineGraph />
       </div>
     );
   }
